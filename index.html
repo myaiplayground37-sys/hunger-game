@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>האנגמן של משחק הרעב</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <section class="game-panel glass-card">
+        <div class="title-row">
+          <div>
+            <h1>האנגמן של משחק הרעב</h1>
+            <p class="subtitle">נחש את המילה בעברית לפני שתנגמר ההזדמנויות.</p>
+          </div>
+          <div class="badge">Neon Arena</div>
+        </div>
+
+        <div class="board">
+          <div class="word-box" id="wordDisplay" aria-live="polite"></div>
+          <div class="status-row">
+            <div class="status-card">
+              <span>ניחושים מוצלחים</span>
+              <strong id="correctCount">0</strong>
+            </div>
+            <div class="status-card">
+              <span>ניחושים שגויים</span>
+              <strong id="wrongCount">0</strong>
+            </div>
+            <div class="status-card">
+              <span>ניסיונות שנותרו</span>
+              <strong id="remainingCount">6</strong>
+            </div>
+          </div>
+
+          <div class="input-row">
+            <label for="letterInput">הכנס אות בעברית</label>
+            <div class="input-control">
+              <input
+                id="letterInput"
+                type="text"
+                inputmode="text"
+                dir="rtl"
+                maxlength="1"
+                autocomplete="off"
+                placeholder="הזינו אות אחת"
+              />
+              <button id="guessButton" type="button">נחש</button>
+            </div>
+          </div>
+
+          <div class="message-panel" id="messageBox" aria-live="polite"></div>
+
+          <div class="letters-panel">
+            <div>
+              <span class="panel-title">אותיות שניסית</span>
+              <div id="guessedLetters" class="guess-list"></div>
+            </div>
+          </div>
+
+          <button class="reset-button" id="resetButton" type="button">התחל מחדש</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
