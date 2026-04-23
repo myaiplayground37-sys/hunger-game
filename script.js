@@ -31,7 +31,7 @@ let correctGuesses = 0;
 let gameOver = false;
 let audioCtx = null;
 
-const hebrewLetters = /^[אבגדהוזחטיכלמנסעפצקרשתץףןך]+$/u;
+const hebrewLetters = /^[א-ת]+$/u;
 
 function getAudioContext() {
   if (!audioCtx) {
