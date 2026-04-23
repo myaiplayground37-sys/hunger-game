@@ -21,6 +21,7 @@ const remainingCount = document.getElementById("remainingCount");
 const letterInput = document.getElementById("letterInput");
 const guessButton = document.getElementById("guessButton");
 const resetButton = document.getElementById("resetButton");
+const confettiContainer = document.getElementById("confettiContainer");
 
 let currentWord = "";
 let displayedLetters = [];
@@ -28,8 +29,104 @@ let guessedLetters = [];
 let wrongGuesses = 0;
 let correctGuesses = 0;
 let gameOver = false;
+let audioCtx = null;
 
 const hebrewLetters = /^[אבגדהוזחטיכלמנסעפצקרשתץףןך]+$/u;
+
+function getAudioContext() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return audioCtx;
+}
+
+function playTone(frequency, duration = 0.14, type = "sine", volume = 0.18) {
+  const ctx = getAudioContext();
+  const oscillator = ctx.createOscillator();
+  const gain = ctx.createGain();
+  oscillator.type = type;
+  oscillator.frequency.value = frequency;
+  gain.gain.value = volume;
+  oscillator.connect(gain);
+  gain.connect(ctx.destination);
+  oscillator.start();
+  oscillator.stop(ctx.currentTime + duration);
+}
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function playPattern(notes) {
+  for (const note of notes) {
+    playTone(note.freq, note.duration, note.type, note.volume);
+    await wait((note.duration + (note.pause || 0)) * 1000);
+  }
+}
+
+function playCorrectSound() {
+  playPattern([
+    { freq: 440, duration: 0.1, type: "triangle", volume: 0.16 },
+    { freq: 550, duration: 0.1, type: "triangle", volume: 0.16, pause: 0.02 },
+    { freq: 660, duration: 0.12, type: "triangle", volume: 0.16, pause: 0.02 },
+  ]);
+}
+
+function playWrongSound() {
+  playPattern([
+    { freq: 220, duration: 0.16, type: "square", volume: 0.16 },
+    { freq: 180, duration: 0.12, type: "square", volume: 0.12, pause: 0.03 },
+  ]);
+}
+
+function playWinTune() {
+  playPattern([
+    { freq: 523, duration: 0.18, type: "sine", volume: 0.17 },
+    { freq: 660, duration: 0.18, type: "sine", volume: 0.17, pause: 0.04 },
+    { freq: 784, duration: 0.24, type: "sine", volume: 0.18, pause: 0.02 },
+    { freq: 988, duration: 0.3, type: "sine", volume: 0.18, pause: 0.04 },
+  ]);
+}
+
+function playSadTune() {
+  playPattern([
+    { freq: 330, duration: 0.16, type: "sawtooth", volume: 0.16 },
+    { freq: 294, duration: 0.16, type: "sawtooth", volume: 0.16, pause: 0.02 },
+    { freq: 262, duration: 0.2, type: "sawtooth", volume: 0.14, pause: 0.03 },
+    { freq: 220, duration: 0.28, type: "sawtooth", volume: 0.14 },
+  ]);
+}
+
+function clearConfetti() {
+  if (confettiContainer) {
+    confettiContainer.innerHTML = "";
+  }
+}
+
+function burstConfetti() {
+  if (!confettiContainer) return;
+  clearConfetti();
+  const colors = ["#6f9cff", "#ff5ae0", "#3be3a0", "#ffd166", "#ff7f50"];
+  const pieces = 80;
+  for (let i = 0; i < pieces; i += 1) {
+    const piece = document.createElement("span");
+    piece.className = "confetti-piece";
+    const size = Math.random() * 10 + 6;
+    const x = Math.random() * 100;
+    const duration = Math.random() * 1.2 + 2.4;
+    piece.style.width = `${size}px`;
+    piece.style.height = `${size}px`;
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.left = `${x}vw`;
+    piece.style.top = "-15px";
+    piece.style.setProperty("--x", `${Math.random() * 80 - 40}vw`);
+    piece.style.setProperty("--duration", `${duration}s`);
+    piece.style.transform = `rotate(${Math.random() * 360}deg)`;
+    piece.style.opacity = String(0.9 + Math.random() * 0.1);
+    confettiContainer.appendChild(piece);
+  }
+  setTimeout(clearConfetti, 5000);
+}
 
 function pickWord() {
   const randomIndex = Math.floor(Math.random() * words.length);
@@ -111,25 +208,31 @@ function handleGuess() {
       }
     });
     setMessage("מזל טוב! האות נמצאה במילה.", "success");
+    playCorrectSound();
   } else {
     wrongGuesses += 1;
     setMessage(`האות ${letter} אינה במילה. נסה שוב.`, "error");
+    playWrongSound();
   }
 
   updateWordDisplay();
   updateLetterPanel();
   updateStatus();
   checkGameState();
+  letterInput.focus();
 }
 
 function checkGameState() {
   if (displayedLetters.every((letter) => letter !== "_")) {
     setMessage(`ניצחת! המילה היא: ${currentWord}`, "success");
+    burstConfetti();
+    playWinTune();
     gameOver = true;
   } else if (wrongGuesses >= maxWrong) {
     setMessage(`הפסדת. המילה היתה: ${currentWord}`, "error");
     displayedLetters = Array.from(currentWord);
     updateWordDisplay();
+    playSadTune();
     gameOver = true;
   }
 }
